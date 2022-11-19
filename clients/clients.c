@@ -2,62 +2,90 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/shm.h>
 
-
-#include "clients.h"
 #include "../logger/logger.h"
 #include "../socket/socket.h"
+#include "../server/server.h"
 #include "../config.h"
+#include "clients.h"
 
-//TODO: load from shared memory
+int connectAndGetFile(){
+    char name[10] = "TEST";
 
-struct process_pids pids;
+    logMessage(name,"Running",COLOR_GREEN);
 
-void runClient1(){
-    logMessage("CLIENT_1","Client 1 Running",0);
-
-    char* hello = "Message from Client 1 ###";
-    char buffer[1024] = { 0 };
-
+    char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
     sock = setupClientSocket(SERVER_IP, SERVER_PORT);
-
     connectToServer(sock);
+    logMessage(name,"Connected to server",COLOR_GREEN);
 
+    buffer[0] = (char) SERVER_ACTION_GET_FILE;
+    send(sock.descriptor, buffer, strlen(buffer), 0);
 
-    logMessage("CLIENT_1", "Sending after 10 secs",10);
-    sleep(10);
-    send(sock.descriptor, hello, strlen(hello), 0);
+    recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
+    logMessage(name, buffer, COLOR_WHITE);
 
-    sleep(2);
-
-    recv(sock.descriptor, buffer, 1024, 0);
-
-    logMessage("CLIENT_1", buffer, 10);
-    logMessage("CLIENT_1", "Killing server!", 10);
-
-    //kill(pids.server_pid, SIGKILL);
-
-    close(sock.descriptor);
-
-    logMessage("CLIENT_1", "ENDING",10);
+    logMessage(name, "Exiting", COLOR_YELLOW);
+    return 0;
 }
 
+void runClient1(){
+    char name[10] = "CLIENT_1";
+
+    logMessage(name,"Running",COLOR_GREEN);
+
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+
+    printf("\n\tCLIENT_1: my pid: %d\n", shm_runtime_ptr->client1_pid);
+
+
+    logMessage(name, "Exiting", COLOR_YELLOW);
+    return 0;
+}
 
 void runClient2(){
-    logMessage("CLIENT_2","Client 2 Running",0);
+    char name[10] = "CLIENT_2";
 
-    sleep(10);
-    logMessage("CLIENT_1", "ENDING",10);
+    logMessage(name,"Running",COLOR_GREEN);
 
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+
+    printf("\n\tCLIENT_2: my pid: %d\n", shm_runtime_ptr->client2_pid);
+
+
+
+    logMessage(name, "Exiting", COLOR_YELLOW);
+    return 0;
 }
 
 void runClient3(){
-    logMessage("CLIENT_3","Client 3 Running",0);
+    char name[10] = "CLIENT_3";
 
+    logMessage(name,"Running",COLOR_GREEN);
+
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+
+    printf("\n\tCLIENT_3: my pid: %d\n", shm_runtime_ptr->client3_pid);
+
+    logMessage(name, "Exiting", COLOR_YELLOW);
+    return 0;
 }
 
 void runClient4(){
-    logMessage("CLIENT_4","Client 4 Running",0);
+    char name[10] = "CLIENT_4";
 
+    logMessage(name,"Running",COLOR_GREEN);
+
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+
+    printf("\n\tCLIENT_4: my pid: %d\n", shm_runtime_ptr->client4_pid);
+
+    logMessage(name, "Exiting", COLOR_YELLOW);
+    return 0;
 }

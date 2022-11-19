@@ -1,4 +1,3 @@
-
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +5,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/ipc.h>
 #include <sys/shm.h>
 
 #include "../logger/logger.h"
@@ -14,49 +12,58 @@
 #include "../config.h"
 #include "server.h"
 
-
 void setupServerSocket(struct socket *sock);
-
+void handleServerAction(int action, char *buffer);
+int getAction(char *buffer);
+char *getData(char *buffer);
 
 int runServer()
 {
+    char name[7] = "SERVER\0";
+    logMessage(name, "Server Running", COLOR_GREEN);
+
     struct socket sock;
     setupServerSocket(&sock);
+    char buffer[CHAR_BUFFER_SIZE] = { 0 };
 
     int temp_sock_desc;
     ssize_t success_read;
-    char buffer[1024];
-
-    logMessage("SERVER", "server running", 0);
 
     while(1){
-        logMessage("SERVER", "listening...\n", 4);
+        logMessage(name, "listening...\n", COLOR_INFO);
 
         temp_sock_desc = accept(sock.descriptor, (struct sockaddr*)&sock.addr, (socklen_t*)&sock.addr);
         if (temp_sock_desc < 0)
         {
-            logMessage("SERVER", "Accept failed!",-1);
+            logMessage(name, "Accept failed!",COLOR_RED);
             close(sock.descriptor);
             exit(EXIT_FAILURE);
         }
 
-        success_read = recv(temp_sock_desc, buffer, 1024, 0);
+        success_read = recv(temp_sock_desc, buffer, CHAR_BUFFER_SIZE, 0);
         if(success_read == 0){
-            logMessage("SERVER", "Server killed",10);
+            logMessage(name, "Client disconnected.",COLOR_RED);
+            close(sock.descriptor);
+            close(temp_sock_desc);
+            exit(EXIT_FAILURE);
+        }
+        if(success_read == -1){
+            logMessage(name, "Cannot read from client!",COLOR_RED);
+            close(sock.descriptor);
+            close(temp_sock_desc);
+            exit(EXIT_FAILURE);
+        }
 
+        if(strcmp(buffer,"exit")){
             break;
         }
 
-        printf("SERVER RECEIVED: %s\n", buffer);
-        sleep(1);
-
-        send(temp_sock_desc, "server response", strlen("server response"), 0);
-
+        handleServerAction(getAction(buffer), buffer);
+        send(temp_sock_desc, buffer,strlen(buffer), 0);
+        close(temp_sock_desc);
     }
 
-   // int shmId = shmget((key_t)SHM_PIDS_KEY, sizeof(struct process_pids), IPC_CREAT | 0666);
-
-    //shmctl(shmId, IPC_RMID, NULL);
+    logMessage(name, "Stopping server", COLOR_YELLOW);
     close(temp_sock_desc);
     close(sock.descriptor);
     return 0;
@@ -92,4 +99,43 @@ void setupServerSocket(struct socket *sock){
         exit(EXIT_FAILURE);
     }
 
+}
+
+int getAction(char *buffer){
+    return (int) buffer[0];
+}
+
+char *getData(char *buffer){
+    return buffer;
+}
+
+void handleServerAction(int action, char *buffer){
+
+    switch (action)
+    {
+        case  SERVER_ACTION_GET_FILE:
+            strcpy(buffer, INPUT_FILE);
+            break;
+
+        default:
+            strcpy(buffer, "Invalid action");
+            break;
+    }
+
+}
+
+struct runtime* getRuntimeData(){
+
+    int shm_id;
+    key_t mem_key;
+    struct runtime *shm_runtime_ptr;
+
+    if ((mem_key = ftok("/tmp", 'a')) == (key_t) -1) {
+        perror("\nIPC error: ftok\n"); exit(1);
+    }
+
+    shm_id = shmget(mem_key, sizeof(struct runtime), 0666);
+    shm_runtime_ptr = (struct runtime*) shmat(shm_id, NULL, 0);
+
+    return shm_runtime_ptr;
 }

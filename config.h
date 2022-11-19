@@ -1,7 +1,3 @@
-//
-// Created by andrejvysny on 15.11.2022.
-//
-
 #ifndef OSRT_SEMESTRALKA_CONFIG_H
 #define OSRT_SEMESTRALKA_CONFIG_H
 
@@ -11,13 +7,19 @@
 
 #define SERVER_BACKLOG 5
 
-struct process_pids {
+#define SHM_RUNTIME_KEY 1225
+
+#define CHAR_BUFFER_SIZE 1024
+
+struct runtime {
     pid_t server_pid;
     pid_t client1_pid;
     pid_t client2_pid;
     pid_t client3_pid;
     pid_t client4_pid;
+    int clients_up;
 };
 
-#define SHM_PIDS_KEY 1224
+#define INPUT_FILE "input.txt"
+
 #endif //OSRT_SEMESTRALKA_CONFIG_H
