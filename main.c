@@ -56,7 +56,7 @@ int main() {
         key_t mem_key;
         struct runtime *shm_runtime_ptr;
 
-        if ((mem_key = ftok("/tmp", 'a')) == (key_t) -1) {
+        if ((mem_key = ftok(SHM_RUNTIME_LOC, SHM_RUNTIME_KEY)) == (key_t) -1) {
             perror("\nIPC error: ftok\n"); exit(1);
         }
 
@@ -69,14 +69,6 @@ int main() {
         shm_runtime_ptr->client3_pid = runtime_d.client3_pid;
         shm_runtime_ptr->client4_pid = runtime_d.client4_pid;
         shm_runtime_ptr->clients_up = 0;
-
-        printf("\n\nServer PID: %d\nClient1 PID: %d\nClient2 PID: %d\nClient3 PID: %d\nClient4 PID: %d\n\n",
-               runtime_d.server_pid,
-               runtime_d.client1_pid,
-               runtime_d.client2_pid,
-               runtime_d.client3_pid,
-               runtime_d.client4_pid
-               );
     }
 
     sleep(1);

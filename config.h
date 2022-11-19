@@ -8,6 +8,7 @@
 #define SERVER_BACKLOG 5
 
 #define SHM_RUNTIME_KEY 1225
+#define SHM_RUNTIME_LOC "/tmp"
 
 #define CHAR_BUFFER_SIZE 1024
 

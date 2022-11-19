@@ -130,8 +130,9 @@ struct runtime* getRuntimeData(){
     key_t mem_key;
     struct runtime *shm_runtime_ptr;
 
-    if ((mem_key = ftok("/tmp", 'a')) == (key_t) -1) {
-        perror("\nIPC error: ftok\n"); exit(1);
+    if ((mem_key = ftok(SHM_RUNTIME_LOC, SHM_RUNTIME_KEY)) == (key_t) -1) {
+        logMessage("SHM","IPC error: ftok",-1);
+        exit(1);
     }
 
     shm_id = shmget(mem_key, sizeof(struct runtime), 0666);
