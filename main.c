@@ -79,6 +79,7 @@ int main() {
             logMessage("RUNNER", "ERROR while naming process server", -1);
         logMessage("RUNNER", "Server process created!", 0);
         runServer();
+
     }
 
     sleep(2);

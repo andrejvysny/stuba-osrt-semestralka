@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     for (i = 1; i <= count; i++) {
         int num = (rand() % (upper - lower + 1)) + lower;
         printf("%3d. %5d\n",i, num);
-        fprintf(fw, "%d\n",num);
+        fprintf(fw, "%d ",num);
     }
 
     fclose(fw);

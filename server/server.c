@@ -54,12 +54,15 @@ int runServer()
             exit(EXIT_FAILURE);
         }
 
-        if(strcmp(buffer,"exit")){
-            break;
-        }
+//        if(getAction(buffer) == SERVER_ACTION_EXIT){
+//            logMessage(name, "Exit command", COLOR_YELLOW);
+//            break;
+//        }
 
-        handleServerAction(getAction(buffer), buffer);
-        send(temp_sock_desc, buffer,strlen(buffer), 0);
+
+        handleServerAction(getAction(buffer), getData(buffer));
+        send(temp_sock_desc, INPUT_FILE,strlen(INPUT_FILE), 0);
+
         close(temp_sock_desc);
     }
 
@@ -106,7 +109,7 @@ int getAction(char *buffer){
 }
 
 char *getData(char *buffer){
-    return buffer;
+    return buffer + sizeof (char);
 }
 
 void handleServerAction(int action, char *buffer){
@@ -115,6 +118,12 @@ void handleServerAction(int action, char *buffer){
     {
         case  SERVER_ACTION_GET_FILE:
             strcpy(buffer, INPUT_FILE);
+            break;
+
+        case  SERVER_ACTION_RESULT_AVG:
+
+            printf("\nSERVER AVG RECEIVED: %s\n",buffer);
+            strcpy(buffer, "DONE");
             break;
 
         default:

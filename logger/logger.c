@@ -20,20 +20,21 @@ void debugBuffer(char buffer[], int size){
 
     int i =0;
     while (buffer[i] != '\0' && i <= size){
+
         if(buffer[i]=='\0'){
-            printf("Position: %2d  Char: \\",i);
+            printf("Position: %2d Code: %d  Char: \\",i, buffer[i]);
             printf("0\n");
         }
         else if(buffer[i]=='\n'){
-            printf("Position: %2d  Char: \\",i);
+            printf("Position: %2d Code: %d  Char: \\",i, buffer[i]);
             printf("n\n");
         }
         else if(buffer[i]=='\t'){
-            printf("Position: %2d  Char: \\",i);
+            printf("Position: %2d Code: %d  Char: \\",i, buffer[i]);
             printf("t\n");
         }
         else{
-            printf("Position: %2d  Char: %c\n",i,buffer[i]);
+            printf("Position: %2d Code: %d Char: %c\n",i, buffer[i],buffer[i]);
         }
         i++;
     }
