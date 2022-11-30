@@ -10,7 +10,6 @@
 
 void setupClientSocket(struct socket *clientSock, char ip[], int port, char logName[]){
 
-
     clientSock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
     if(clientSock->descriptor < 0){
         logMessage(logName, "Error while socket init.", COLOR_RED);
@@ -34,13 +33,12 @@ void setupClientSocket(struct socket *clientSock, char ip[], int port, char logN
 }
 
 
-
 void setupServerSocket(struct socket *serverSock, int port, int backLog, char logName[]){
 
     serverSock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
     if(serverSock->descriptor < 0){
         logMessage(logName, "Error in connection.", COLOR_RED);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     memset(&serverSock->addr, 0, sizeof(serverSock->addr));
@@ -50,9 +48,8 @@ void setupServerSocket(struct socket *serverSock, int port, int backLog, char lo
 
     if(bind(serverSock->descriptor, (struct sockaddr*)&serverSock->addr, sizeof(serverSock->addr)) < 0){
         logMessage(logName, "Error in binding.", COLOR_RED);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
-    printf("[+]Bind to port %d\n", 4444);
 
     if(listen(serverSock->descriptor, backLog) != 0){
         logMessage(logName, "Error in binding (listen).", COLOR_RED);
@@ -61,5 +58,3 @@ void setupServerSocket(struct socket *serverSock, int port, int backLog, char lo
     logMessage(logName, "Listening...",COLOR_INFO);
 
 }
-
-
