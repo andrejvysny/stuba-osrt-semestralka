@@ -9,6 +9,6 @@ struct socket {
 };
 
 void setupClientSocket(struct socket *clientSock, char ip[], int port,char logName[]);
-void setupServerSocket(struct socket *serverSock, int port, char logName[]);
+void setupServerSocket(struct socket *serverSock, int port, int backLog, char logName[]);
 
 #endif //MY_SOCKET_H
