@@ -1,17 +1,14 @@
 #include <netinet/in.h>
 
-#ifndef OSRT_SEMESTRALKA_SOCKET_H
-#define OSRT_SEMESTRALKA_SOCKET_H
-
-int generateSocket();
-
-struct socket setupClientSocket(char ip[], int port);
-
-void connectToServer(struct socket config);
+#ifndef MY_SOCKET_H
+#define MY_SOCKET_H
 
 struct socket {
     int descriptor;
     struct sockaddr_in addr;
 };
 
-#endif //OSRT_SEMESTRALKA_SOCKET_H
+void setupClientSocket(struct socket *clientSock, char ip[], int port,char logName[]);
+void setupServerSocket(struct socket *serverSock, int port, char logName[]);
+
+#endif //MY_SOCKET_H
