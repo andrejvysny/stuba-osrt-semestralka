@@ -6,123 +6,103 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/shm.h>
+#include <signal.h>
 
 #include "../logger/logger.h"
 #include "../socket/socket.h"
 #include "../config.h"
 #include "server.h"
 
-void setupServerSocket(struct socket *sock);
-void handleServerAction(int action, char *buffer);
-int getAction(char *buffer);
+#define PROCESS_NAME_SERVER "SERVER"
+
+void handleServerAction(int sock_desc, char action, char *buffer);
+char getAction(char *buffer);
 char *getData(char *buffer);
+void appendToFile(char *message);
+
+void signal_kill();
+
+
 
 int runServer()
 {
-    char name[7] = "SERVER\0";
-    logMessage(name, "Server Running", COLOR_GREEN);
+    logMessage(PROCESS_NAME_SERVER, "Server Running", COLOR_GREEN);
 
-    struct socket sock;
-    setupServerSocket(&sock);
-    char buffer[CHAR_BUFFER_SIZE] = { 0 };
+    struct socket serverSock;
 
-    int temp_sock_desc;
-    ssize_t success_read;
+    int tmpFd;
+    struct sockaddr_in tmpAddr;
+    socklen_t tmpAddrLen;
+
+    size_t readBytes;
+
+    pid_t handlerPid;
+    char buffer[CHAR_BUFFER_SIZE];
+    bzero(buffer, sizeof(buffer));
+
+    setupServerSocket(&serverSock, SERVER_PORT, 5, PROCESS_NAME_SERVER);
 
     while(1){
-        logMessage(name, "listening...\n", COLOR_INFO);
-
-        temp_sock_desc = accept(sock.descriptor, (struct sockaddr*)&sock.addr, (socklen_t*)&sock.addr);
-        if (temp_sock_desc < 0)
-        {
-            logMessage(name, "Accept failed!",COLOR_RED);
-            close(sock.descriptor);
+        tmpFd = accept(serverSock.descriptor, (struct sockaddr*) &tmpAddr, &tmpAddrLen);
+        if(tmpFd < 0){
+            logMessage(PROCESS_NAME_SERVER,"Error while accepting client!",COLOR_RED);
             exit(EXIT_FAILURE);
         }
 
-        success_read = recv(temp_sock_desc, buffer, CHAR_BUFFER_SIZE, 0);
-        if(success_read == 0){
-            logMessage(name, "Client disconnected.",COLOR_RED);
-            close(sock.descriptor);
-            close(temp_sock_desc);
-            exit(EXIT_FAILURE);
+        if((handlerPid = fork()) == 0){
+            close(serverSock.descriptor);
+
+            while(1){
+                readBytes = recv(tmpFd, buffer, CHAR_BUFFER_SIZE, 0);
+
+                if(readBytes < 0){
+                    logMessage(PROCESS_NAME_SERVER, "Error while reading from client!",COLOR_RED);
+                    break;
+                }else if (getAction(buffer) == SERVER_ACTION_EXIT || readBytes == 0){
+                    logMessage(PROCESS_NAME_SERVER, "Client disconnected.",COLOR_WHITE);
+                    break;
+                }else{
+                    handleServerAction(tmpFd, getAction(buffer), buffer);
+                }
+            }
+
+            printf("\nStopping client response process\n");
+            break;
         }
-        if(success_read == -1){
-            logMessage(name, "Cannot read from client!",COLOR_RED);
-            close(sock.descriptor);
-            close(temp_sock_desc);
-            exit(EXIT_FAILURE);
-        }
 
-//        if(getAction(buffer) == SERVER_ACTION_EXIT){
-//            logMessage(name, "Exit command", COLOR_YELLOW);
-//            break;
-//        }
-
-
-        handleServerAction(getAction(buffer), getData(buffer));
-        send(temp_sock_desc, INPUT_FILE,strlen(INPUT_FILE), 0);
-
-        close(temp_sock_desc);
     }
 
-    logMessage(name, "Stopping server", COLOR_YELLOW);
-    close(temp_sock_desc);
-    close(sock.descriptor);
+    printf("Closing temp socket\n");
+    close(tmpFd);
+
+    if(handlerPid != 0){
+        logMessage(PROCESS_NAME_SERVER, "Stopping server", COLOR_YELLOW);
+        close(serverSock.descriptor);
+    }
     return 0;
 }
 
 
 
-void setupServerSocket(struct socket *sock){
 
-    sock->descriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock->descriptor == -1)
-    {
-        printf("cannot create socket!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&sock->addr, 0, sizeof(sock->addr));
-    sock->addr.sin_family = AF_INET;
-    sock->addr.sin_addr.s_addr = INADDR_ANY;
-    sock->addr.sin_port = htons(SERVER_PORT);
-    if (bind(sock->descriptor, (struct sockaddr*)&sock->addr, sizeof(sock->addr)) < 0)
-    {
-        logMessage("SERVER", "Server cannot bind socket!", -1);
-        close(sock->descriptor);
-        exit(EXIT_FAILURE);
-    }
-
-
-    if (listen(sock->descriptor, SERVER_BACKLOG) < 0)
-    {
-        logMessage("SERVER", "Cannot listen on socket!", -1);
-        close(sock->descriptor);
-        exit(EXIT_FAILURE);
-    }
-
-}
-
-int getAction(char *buffer){
-    return (int) buffer[0];
+char getAction(char *buffer){
+    return (char) buffer[0];
 }
 
 char *getData(char *buffer){
     return buffer + sizeof (char);
 }
 
-void handleServerAction(int action, char *buffer){
+void handleServerAction(int sock_desc, char action, char *buffer){
 
     switch (action)
     {
-        case  SERVER_ACTION_GET_FILE:
+        case SERVER_ACTION_GET_FILE:
             strcpy(buffer, INPUT_FILE);
             break;
 
-        case  SERVER_ACTION_RESULT_AVG:
-
-            printf("\nSERVER AVG RECEIVED: %s\n",buffer);
+        case SERVER_ACTION_SAVE_RESULT:
+            appendToFile(getData(buffer));
             strcpy(buffer, "DONE");
             break;
 
@@ -130,6 +110,9 @@ void handleServerAction(int action, char *buffer){
             strcpy(buffer, "Invalid action");
             break;
     }
+
+    send(sock_desc, buffer, strlen(buffer), 0);
+    bzero(buffer, CHAR_BUFFER_SIZE);
 
 }
 
@@ -148,4 +131,24 @@ struct runtime* getRuntimeData(){
     shm_runtime_ptr = (struct runtime*) shmat(shm_id, NULL, 0);
 
     return shm_runtime_ptr;
+}
+
+void signal_kill()
+{
+    signal(SIGUSR1,signal_kill);
+
+    logMessage(PROCESS_NAME_SERVER, "Received SIGUSR1 signal", COLOR_INFO);
+    logMessage(PROCESS_NAME_SERVER,"Killing server", COLOR_YELLOW);
+    exit(0);
+}
+
+void appendToFile(char *message)
+{
+    logMessage(PROCESS_NAME_SERVER,"Writing to output file!",COLOR_INFO);
+    FILE *fr;
+    if((fr = fopen(OUTPUT_FILE,"a")) == NULL){
+        return 0;
+    }
+    fprintf(fr, "%s\n", message);
+    fclose(fr);
 }

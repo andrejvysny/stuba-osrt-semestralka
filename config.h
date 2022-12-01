@@ -22,5 +22,5 @@ struct runtime {
 };
 
 #define INPUT_FILE "input.txt"
-
+#define OUTPUT_FILE "output.txt"
 #endif //OSRT_SEMESTRALKA_CONFIG_H

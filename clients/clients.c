@@ -3,6 +3,8 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/shm.h>
+#include <math.h>
+#include <stdlib.h>
 
 #include "../logger/logger.h"
 #include "../socket/socket.h"
@@ -56,16 +58,37 @@ void loadData(char *file, int matrix[100][100]){
     fclose(fr);
 }
 
+void sendUSR1(int pid, char name[]){
+    logMessage(name,"Sending SIGUSR1",COLOR_WHITE);
+    kill(pid,SIGUSR1);
+}
+
+
+int intToBuffer(int number, char *buffer, int offset){
+    int nDigits = floor(log10(abs(number))) + 1;
+    if(number < 0) nDigits++;
+    gcvt(number, nDigits + 1 , buffer + offset);
+}
+
+int floatToBuffer(float number, char *buffer, int offset){
+    int nDigits = floor(log10(abs((int)number))) + 1;
+    if(number < 0) nDigits++;
+    gcvt(number, nDigits + 3 , buffer + offset);
+}
+
 
 void runClient1(){
     char name[10] = "CLIENT_1";
     logMessage(name,"Running",COLOR_GREEN);
 
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+    shm_runtime_ptr->clients_up++;
+
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
-    sock = setupClientSocket(SERVER_IP, SERVER_PORT);
-    connectToServer(sock);
-    logMessage(name,"Connected to server",COLOR_GREEN);
+
+    setupClientSocket(&sock, SERVER_IP,SERVER_PORT, name);
 
     buffer[0] = (char) SERVER_ACTION_GET_FILE;
     buffer[1] = '\0';
@@ -75,17 +98,40 @@ void runClient1(){
     int matrix[100][100];
     loadData(buffer, matrix);
     float avg = getAverageMatrix(matrix);
+
+    bzero(buffer, CHAR_BUFFER_SIZE);
+    buffer[0] = (char) SERVER_ACTION_SAVE_RESULT;
+    strcpy(buffer + sizeof (char), "Average:");
+    floatToBuffer(avg,buffer,(int) strlen(buffer));
+    buffer[(int) strlen(buffer)] = '\0';
+
+
+    logMessage(name,"Sending AVG to server in 2s", COLOR_INFO);
+    sleep(2);
+
+    send(sock.descriptor, buffer, strlen(buffer), 0);
+    recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
+    printf("CLIENT_1: %s",buffer);
+
+
+    sleep(1);
     close(sock.descriptor);
 
-    printf("\tCLIENT_1: Avg Matrix: %f\n",avg);
+    sendUSR1(shm_runtime_ptr->server_pid, name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
 }
 
-void runClient2(){
+void runClient2(){return 0;
     char name[10] = "CLIENT_2";
     logMessage(name,"Running",COLOR_GREEN);
+
+
+/*
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -103,15 +149,19 @@ void runClient2(){
     int sum = getSumMatrix(matrix);
     close(sock.descriptor);
 
-    printf("\tCLIENT_2: Sum Matrix: %d\n",sum);
+    printf("\tCLIENT_2: Sum Matrix: %d\n",sum);*/
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
 }
 
-void runClient3(){
+void runClient3(){return 0;
     char name[10] = "CLIENT_3";
     logMessage(name,"Running",COLOR_GREEN);
+/*
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -130,17 +180,18 @@ void runClient3(){
     close(sock.descriptor);
 
     printf("\tCLIENT_3: Min Matrix: %d\n",min);
-
-    // struct runtime *shm_runtime_ptr;
-    //shm_runtime_ptr = getRuntimeData();
-
+*/
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
 }
 
-void runClient4(){
+void runClient4(){return 0;
     char name[10] = "CLIENT_4";
     logMessage(name,"Running",COLOR_GREEN);
+/*
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
+    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -159,7 +210,7 @@ void runClient4(){
     close(sock.descriptor);
 
     printf("\tCLIENT_4: Max Matrix: %d\n",max);
-
+*/
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
 }
