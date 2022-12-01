@@ -49,6 +49,7 @@ int runServer()
             exit(EXIT_FAILURE);
         }
 
+        //TODO use parallel thread
         if((handlerPid = fork()) == 0){
             close(serverSock.descriptor);
 
