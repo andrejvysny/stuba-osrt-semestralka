@@ -55,25 +55,24 @@ int runServer()
             while(1){
                 readBytes = recv(tmpFd, buffer, CHAR_BUFFER_SIZE, 0);
 
-                if(readBytes < 0){
-                    logMessage(PROCESS_NAME_SERVER, "Error while reading from client!",COLOR_RED);
-                    break;
+                if(readBytes > 0){
+                    handleServerAction(tmpFd, getAction(buffer), buffer);
+
                 }else if (getAction(buffer) == SERVER_ACTION_EXIT || readBytes == 0){
-                    logMessage(PROCESS_NAME_SERVER, "Client disconnected.",COLOR_WHITE);
+                    logMessage(PROCESS_NAME_SERVER, "Client disconnected.",COLOR_YELLOW);
                     break;
                 }else{
-                    handleServerAction(tmpFd, getAction(buffer), buffer);
+                    logMessage(PROCESS_NAME_SERVER, "Error while reading from client!",COLOR_RED);
+                    break;
                 }
             }
 
-            printf("\nStopping client response process\n");
-            break;
+            logMessage(PROCESS_NAME_SERVER, "Stopping client response process", COLOR_YELLOW);
+            close(tmpFd);
+            exit(EXIT_SUCCESS);
         }
 
     }
-
-    printf("Closing temp socket\n");
-    close(tmpFd);
 
     if(handlerPid != 0){
         logMessage(PROCESS_NAME_SERVER, "Stopping server", COLOR_YELLOW);

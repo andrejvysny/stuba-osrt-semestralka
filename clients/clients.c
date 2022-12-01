@@ -105,39 +105,31 @@ void runClient1(){
     floatToBuffer(avg,buffer,(int) strlen(buffer));
     buffer[(int) strlen(buffer)] = '\0';
 
-
-    logMessage(name,"Sending AVG to server in 2s", COLOR_INFO);
-    sleep(2);
+    logMessage(name,"Sending AVG to server.", COLOR_INFO);
 
     send(sock.descriptor, buffer, strlen(buffer), 0);
     recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
-    printf("CLIENT_1: %s",buffer);
 
-
-    sleep(1);
     close(sock.descriptor);
+    shm_runtime_ptr->clients_up--;
 
-    sendUSR1(shm_runtime_ptr->server_pid, name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
 }
 
-void runClient2(){return 0;
+void runClient2(){
     char name[10] = "CLIENT_2";
     logMessage(name,"Running",COLOR_GREEN);
 
-
-/*
     struct runtime *shm_runtime_ptr;
     shm_runtime_ptr = getRuntimeData();
     shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
-    sock = setupClientSocket(SERVER_IP, SERVER_PORT);
-    connectToServer(sock);
-    logMessage(name,"Connected to server",COLOR_GREEN);
+
+    setupClientSocket(&sock, SERVER_IP,SERVER_PORT, name);
 
     buffer[0] = (char) SERVER_ACTION_GET_FILE;
     buffer[1] = '\0';
@@ -147,9 +139,21 @@ void runClient2(){return 0;
     int matrix[100][100];
     loadData(buffer, matrix);
     int sum = getSumMatrix(matrix);
-    close(sock.descriptor);
 
-    printf("\tCLIENT_2: Sum Matrix: %d\n",sum);*/
+    bzero(buffer, CHAR_BUFFER_SIZE);
+    buffer[0] = (char) SERVER_ACTION_SAVE_RESULT;
+    strcpy(buffer + sizeof (char), "Sum:");
+    intToBuffer(sum,buffer,(int) strlen(buffer));
+    buffer[(int) strlen(buffer)] = '\0';
+
+    logMessage(name,"Sending SUM to server.", COLOR_INFO);
+
+    send(sock.descriptor, buffer, strlen(buffer), 0);
+    recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
+
+    close(sock.descriptor);
+    shm_runtime_ptr->clients_up--;
+
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
