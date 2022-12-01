@@ -12,32 +12,6 @@
 #include "../config.h"
 #include "clients.h"
 
-//int connectAndGetFile(){
-//    char name[10] = "TEST";
-//
-//    logMessage(name,"Running",COLOR_GREEN);
-//
-//    char buffer[CHAR_BUFFER_SIZE] = { 0 };
-//    struct socket sock;
-//    sock = setupClientSocket(SERVER_IP, SERVER_PORT);
-//    connectToServer(sock);
-//    logMessage(name,"Connected to server",COLOR_GREEN);
-//
-//    buffer[0] = (char) SERVER_ACTION_GET_FILE;
-//    buffer[1] = '\0';
-//    send(sock.descriptor, buffer, strlen(buffer), 0);
-//
-//    recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
-//
-//    debugBuffer(buffer,20);
-//
-//    logMessage(name, buffer, COLOR_WHITE);
-//
-//    logMessage(name, "Exiting", COLOR_YELLOW);
-//    return 0;
-//}
-
-
 void loadData(char *file, int matrix[100][100]){
 
     FILE *fr;
