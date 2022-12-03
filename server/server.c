@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/shm.h>
 #include <signal.h>
+#include <sys/prctl.h>
 
 #include "../logger/logger.h"
 #include "../socket/socket.h"
@@ -27,6 +28,9 @@ void signal_kill();
 int runServer()
 {
     logMessage(PROCESS_NAME_SERVER, "Server Running", COLOR_GREEN);
+
+    struct runtime *shm_runtime_ptr;
+    shm_runtime_ptr = getRuntimeData();
 
     struct socket serverSock;
 
@@ -51,6 +55,9 @@ int runServer()
 
         //TODO use parallel thread
         if((handlerPid = fork()) == 0){
+            if (prctl(PR_SET_NAME, (unsigned long) "server_handler") < 0)
+                logMessage(PROCESS_NAME_SERVER, "ERROR while naming process server handler.", COLOR_RED);
+
             close(serverSock.descriptor);
 
             while(1){
@@ -71,6 +78,11 @@ int runServer()
             logMessage(PROCESS_NAME_SERVER, "Stopping client response process", COLOR_YELLOW);
             close(tmpFd);
             exit(EXIT_SUCCESS);
+        }else{
+            if(shm_runtime_ptr->clients_up == 0){
+                logMessage(PROCESS_NAME_SERVER, "Stopping server, clients are down.",COLOR_YELLOW);
+                break;
+            }
         }
 
     }

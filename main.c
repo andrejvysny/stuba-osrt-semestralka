@@ -18,34 +18,34 @@ int main() {
     struct runtime runtime_d;
 
     if ((runtime_d.server_pid = fork()) < 0) {
-        logMessage("RUNNER", "Error while creating server process", -1);
+        logMessage("RUNNER", "Error while creating server process", COLOR_RED);
         exit(EXIT_FAILURE);
     }
 
     if (runtime_d.server_pid != 0) {
         if ((runtime_d.client1_pid = fork()) < 0) {
-            logMessage("RUNNER", "Error while creating client 1 process", -1);
+            logMessage("RUNNER", "Error while creating client 1 process", COLOR_RED);
             exit(EXIT_FAILURE);
         }
     }
 
     if (runtime_d.server_pid != 0 && runtime_d.client1_pid != 0) {
         if ((runtime_d.client2_pid = fork()) < 0) {
-            logMessage("RUNNER", "Error while creating client 2 process", -1);
+            logMessage("RUNNER", "Error while creating client 2 process", COLOR_RED);
             exit(EXIT_FAILURE);
         }
     }
 
     if (runtime_d.server_pid != 0 && runtime_d.client1_pid != 0 && runtime_d.client2_pid != 0) {
         if ((runtime_d.client3_pid = fork()) < 0) {
-            logMessage("RUNNER", "Error while creating client 3 process", -1);
+            logMessage("RUNNER", "Error while creating client 3 process", COLOR_RED);
             exit(EXIT_FAILURE);
         }
     }
 
     if (runtime_d.server_pid != 0 && runtime_d.client1_pid != 0 && runtime_d.client2_pid != 0 && runtime_d.client3_pid != 0) {
         if ((runtime_d.client4_pid = fork()) < 0) {
-            logMessage("RUNNER", "Error while creating client 4 process", -1);
+            logMessage("RUNNER", "Error while creating client 4 process", COLOR_RED);
             exit(EXIT_FAILURE);
         }
     }
@@ -76,8 +76,8 @@ int main() {
     // SERVER
     if (runtime_d.server_pid == 0) {
         if (prctl(PR_SET_NAME, (unsigned long) "server") < 0)
-            logMessage("RUNNER", "ERROR while naming process server", -1);
-        logMessage("RUNNER", "Server process created!", 0);
+            logMessage("RUNNER", "ERROR while naming process server", COLOR_RED);
+        logMessage("RUNNER", "Server process created!", COLOR_GREEN);
         runServer();
 
     }
@@ -87,29 +87,29 @@ int main() {
     //CLIENTS
     if (runtime_d.client1_pid == 0 && runtime_d.server_pid != 0 && runtime_d.client2_pid != 0 && runtime_d.client3_pid != 0 && runtime_d.client4_pid != 0) {
         if (prctl(PR_SET_NAME, (unsigned long) "client_1") < 0)
-            logMessage("RUNNER", "ERROR while naming process client 1", -1);
-        logMessage("RUNNER", "Client 1 process created!", 0);
+            logMessage("RUNNER", "ERROR while naming process client 1", COLOR_RED);
+        logMessage("RUNNER", "Client 1 process created!", COLOR_GREEN);
         runClient1();
     }
 
     if (runtime_d.client2_pid == 0 && runtime_d.server_pid != 0 && runtime_d.client1_pid != 0 && runtime_d.client3_pid != 0 && runtime_d.client4_pid != 0) {
         if (prctl(PR_SET_NAME, (unsigned long) "client_2") < 0)
-            logMessage("RUNNER", "ERROR while naming process client 2", -1);
-        logMessage("RUNNER", "Client 2 process created!", 0);
+            logMessage("RUNNER", "ERROR while naming process client 2", COLOR_RED);
+        logMessage("RUNNER", "Client 2 process created!", COLOR_GREEN);
         runClient2();
     }
 
     if (runtime_d.client3_pid == 0 && runtime_d.server_pid != 0 && runtime_d.client2_pid != 0 && runtime_d.client1_pid != 0 && runtime_d.client4_pid != 0) {
         if (prctl(PR_SET_NAME, (unsigned long) "client_3") < 0)
-            logMessage("RUNNER", "ERROR while naming process client 3", -1);
-        logMessage("RUNNER", "Client 3 process created!", 0);
+            logMessage("RUNNER", "ERROR while naming process client 3", COLOR_RED);
+        logMessage("RUNNER", "Client 3 process created!", COLOR_GREEN);
         runClient3();
     }
 
     if (runtime_d.client4_pid == 0 && runtime_d.server_pid != 0 && runtime_d.client2_pid != 0 && runtime_d.client3_pid != 0 && runtime_d.client1_pid != 0) {
         if (prctl(PR_SET_NAME, (unsigned long) "client_4") < 0)
-            logMessage("RUNNER", "ERROR while naming process client 4", -1);
-        logMessage("RUNNER", "Client 4 process created!", 0);
+            logMessage("RUNNER", "ERROR while naming process client 4", COLOR_RED);
+        logMessage("RUNNER", "Client 4 process created!", COLOR_GREEN);
         runClient4();
     }
 
