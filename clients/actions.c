@@ -3,7 +3,7 @@
 #include "clients.h"
 
 float getAverageMatrix(int matrix[100][100]){
-
+    sleep(5);
     float count = 0;
     for (int i = 0; i < 100; ++i) {
         for (int j = 0; j < 100; ++j) {
@@ -15,7 +15,7 @@ float getAverageMatrix(int matrix[100][100]){
 
 
 int getSumMatrix(int matrix[100][100]){
-
+    sleep(4);
     int count = 0;
     for (int i = 0; i < 100; ++i) {
         for (int j = 0; j < 100; ++j) {
@@ -26,6 +26,7 @@ int getSumMatrix(int matrix[100][100]){
 }
 
 int getMinMatrix(int matrix[100][100]){
+    sleep(4);
     int min = matrix[0][0];
     for (int i = 0; i < 100; ++i) {
         for (int j = 0; j < 100; ++j) {
@@ -38,6 +39,7 @@ int getMinMatrix(int matrix[100][100]){
 }
 
 int getMaxMatrix(int matrix[100][100]){
+    sleep(2);
     int max = matrix[0][0];
     for (int i = 0; i < 100; ++i) {
         for (int j = 0; j < 100; ++j) {
