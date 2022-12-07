@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <sys/prctl.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "../logger/logger.h"
 #include "../socket/socket.h"
@@ -182,7 +183,7 @@ char *getData(char *buffer){
 }
 
 void handleServerAction(int sock_desc, char action, char *buffer){
-
+    pthread_t tid;
     switch (action)
     {
         case SERVER_ACTION_GET_FILE:
@@ -190,7 +191,10 @@ void handleServerAction(int sock_desc, char action, char *buffer){
             break;
 
         case SERVER_ACTION_SAVE_RESULT:
-            appendToFile(getData(buffer));
+
+            pthread_create(&tid, NULL, (void *) appendToFile, getData(buffer));
+            pthread_join(tid, NULL);
+
             strcpy(buffer, "DONE");
             break;
 
