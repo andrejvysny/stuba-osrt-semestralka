@@ -57,7 +57,6 @@ void runClient1(){
 
     struct runtime *shm_runtime_ptr;
     shm_runtime_ptr = getRuntimeData();
-    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -85,8 +84,8 @@ void runClient1(){
     recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
 
     close(sock.descriptor);
-    shm_runtime_ptr->clients_up--;
 
+    sendUSR1(shm_runtime_ptr->server_pid,name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
@@ -98,7 +97,6 @@ void runClient2(){
 
     struct runtime *shm_runtime_ptr;
     shm_runtime_ptr = getRuntimeData();
-    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -126,8 +124,7 @@ void runClient2(){
     recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
 
     close(sock.descriptor);
-    shm_runtime_ptr->clients_up--;
-
+    sendUSR1(shm_runtime_ptr->server_pid,name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
@@ -139,7 +136,6 @@ void runClient3(){
 
     struct runtime *shm_runtime_ptr;
     shm_runtime_ptr = getRuntimeData();
-    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -167,8 +163,7 @@ void runClient3(){
     recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
 
     close(sock.descriptor);
-    shm_runtime_ptr->clients_up--;
-
+    sendUSR1(shm_runtime_ptr->server_pid,name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;
@@ -180,7 +175,6 @@ void runClient4(){
 
     struct runtime *shm_runtime_ptr;
     shm_runtime_ptr = getRuntimeData();
-    shm_runtime_ptr->clients_up++;
 
     char buffer[CHAR_BUFFER_SIZE] = { 0 };
     struct socket sock;
@@ -208,8 +202,7 @@ void runClient4(){
     recv(sock.descriptor, buffer, CHAR_BUFFER_SIZE, 0);
 
     close(sock.descriptor);
-    shm_runtime_ptr->clients_up--;
-
+    sendUSR1(shm_runtime_ptr->server_pid,name);
 
     logMessage(name, "Exiting", COLOR_YELLOW);
     return 0;

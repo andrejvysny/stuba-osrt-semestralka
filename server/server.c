@@ -8,6 +8,7 @@
 #include <sys/shm.h>
 #include <signal.h>
 #include <sys/prctl.h>
+#include <time.h>
 
 #include "../logger/logger.h"
 #include "../socket/socket.h"
@@ -21,18 +22,85 @@ char getAction(char *buffer);
 char *getData(char *buffer);
 void appendToFile(char *message);
 
-void signal_kill();
 
+struct runtime* getRuntimeData();
+struct runtime *shm_runtime_ptr;
+struct socket serverSock;
+int connection = 0;
+int second = 0;
+timer_t timer;
 
+timer_t createTimer(int signal)
+{
+    struct sigevent e;
+    e.sigev_notify=SIGEV_SIGNAL;
+    e.sigev_signo=signal;
+    timer_t timer;
+    timer_create(CLOCK_REALTIME, &e, &timer);
+    return timer;
+}
+
+void setTimer(timer_t timer, int s)
+{
+    struct itimerspec time;
+    time.it_value.tv_sec=s;
+    time.it_value.tv_nsec=0;
+    time.it_interval.tv_sec=0;
+    time.it_interval.tv_nsec=0;
+    timer_settime(timer,CLOCK_REALTIME,&time,NULL);
+}
+
+void signal_timer(){
+    second++;
+    signal(SIGUSR2,signal_timer);
+    printf("\tSERVER: Number of connections in %ds : %d\n",second, connection);
+    setTimer(timer,1);
+}
+
+int getRuntimeShmId(){
+    key_t mem_key;
+
+    if ((mem_key = ftok(SHM_RUNTIME_LOC, SHM_RUNTIME_KEY)) == (key_t) -1) {
+        logMessage("SHM","IPC error: ftok",-1);
+        exit(EXIT_FAILURE);
+    }
+
+    return shmget(mem_key, sizeof(struct runtime), 0666);
+}
+
+void stopServer(){
+    logMessage("SERVER", "Stopping server",COLOR_YELLOW);
+
+    shmctl(getRuntimeShmId(), IPC_RMID, NULL);
+    close(serverSock.descriptor);
+    exit(EXIT_SUCCESS);
+}
+
+void signal_client_down()
+{
+    signal(SIGUSR1, signal_client_down);
+    shm_runtime_ptr->clients_up--;
+
+    if(shm_runtime_ptr->clients_up == 0){
+        logMessage("SERVER", "All clients down",COLOR_YELLOW);
+
+        stopServer();
+
+    }
+}
 
 int runServer()
 {
     logMessage(PROCESS_NAME_SERVER, "Server Running", COLOR_GREEN);
 
-    struct runtime *shm_runtime_ptr;
-    shm_runtime_ptr = getRuntimeData();
 
-    struct socket serverSock;
+    timer = createTimer(SIGUSR2);
+    setTimer(timer,1);
+
+    signal(SIGUSR1, signal_client_down);
+    signal(SIGUSR2,signal_timer);
+
+    shm_runtime_ptr = getRuntimeData();
 
     int tmpFd;
     struct sockaddr_in tmpAddr;
@@ -46,8 +114,14 @@ int runServer()
 
     setupServerSocket(&serverSock, SERVER_PORT, 5, PROCESS_NAME_SERVER);
 
+
+
     while(1){
+
+
+
         tmpFd = accept(serverSock.descriptor, (struct sockaddr*) &tmpAddr, &tmpAddrLen);
+        connection++;
         if(tmpFd < 0){
             logMessage(PROCESS_NAME_SERVER,"Error while accepting client!",COLOR_RED);
             exit(EXIT_FAILURE);
@@ -94,7 +168,16 @@ int runServer()
     return 0;
 }
 
-
+void appendToFile(char *message)
+{
+    logMessage(PROCESS_NAME_SERVER,"Writing to output file!",COLOR_INFO);
+    FILE *fr;
+    if((fr = fopen(OUTPUT_FILE,"a")) == NULL){
+        return 0;
+    }
+    fprintf(fr, "%s\n", message);
+    fclose(fr);
+}
 
 
 char getAction(char *buffer){
@@ -130,37 +213,12 @@ void handleServerAction(int sock_desc, char action, char *buffer){
 
 struct runtime* getRuntimeData(){
 
-    int shm_id;
-    key_t mem_key;
-    struct runtime *shm_runtime_ptr;
+    struct runtime *shm_ptr;
 
-    if ((mem_key = ftok(SHM_RUNTIME_LOC, SHM_RUNTIME_KEY)) == (key_t) -1) {
-        logMessage("SHM","IPC error: ftok",-1);
-        exit(1);
-    }
 
-    shm_id = shmget(mem_key, sizeof(struct runtime), 0666);
-    shm_runtime_ptr = (struct runtime*) shmat(shm_id, NULL, 0);
+    shm_ptr = (struct runtime*) shmat(getRuntimeShmId(), NULL, 0);
 
-    return shm_runtime_ptr;
+    return shm_ptr;
 }
 
-void signal_kill()
-{
-    signal(SIGUSR1,signal_kill);
 
-    logMessage(PROCESS_NAME_SERVER, "Received SIGUSR1 signal", COLOR_INFO);
-    logMessage(PROCESS_NAME_SERVER,"Killing server", COLOR_YELLOW);
-    exit(0);
-}
-
-void appendToFile(char *message)
-{
-    logMessage(PROCESS_NAME_SERVER,"Writing to output file!",COLOR_INFO);
-    FILE *fr;
-    if((fr = fopen(OUTPUT_FILE,"a")) == NULL){
-        return 0;
-    }
-    fprintf(fr, "%s\n", message);
-    fclose(fr);
-}
