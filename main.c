@@ -68,7 +68,7 @@ int main() {
         shm_runtime_ptr->client2_pid = runtime_d.client2_pid;
         shm_runtime_ptr->client3_pid = runtime_d.client3_pid;
         shm_runtime_ptr->client4_pid = runtime_d.client4_pid;
-        shm_runtime_ptr->clients_up = 0;
+        shm_runtime_ptr->clients_up = 4;
     }
 
     sleep(1);
