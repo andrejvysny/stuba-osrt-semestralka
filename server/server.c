@@ -83,9 +83,7 @@ void signal_client_down()
 
     if(shm_runtime_ptr->clients_up == 0){
         logMessage("SERVER", "All clients down",COLOR_YELLOW);
-
         stopServer();
-
     }
 }
 
@@ -114,11 +112,7 @@ int runServer()
 
     setupServerSocket(&serverSock, SERVER_PORT, 5, PROCESS_NAME_SERVER);
 
-
-
     while(1){
-
-
 
         tmpFd = accept(serverSock.descriptor, (struct sockaddr*) &tmpAddr, &tmpAddrLen);
         connection++;
@@ -127,7 +121,6 @@ int runServer()
             exit(EXIT_FAILURE);
         }
 
-        //TODO use parallel thread
         if((handlerPid = fork()) == 0){
             if (prctl(PR_SET_NAME, (unsigned long) "server_handler") < 0)
                 logMessage(PROCESS_NAME_SERVER, "ERROR while naming process server handler.", COLOR_RED);
