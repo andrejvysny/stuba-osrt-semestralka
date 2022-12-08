@@ -2,5 +2,5 @@
 cmake-build-debug/
 CMakeLists.txt
 main
-generate
+generator
 output.txt

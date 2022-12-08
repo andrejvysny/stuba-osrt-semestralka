@@ -7,3 +7,9 @@ clean:
 
 run:
 	./main
+
+generator:
+	gcc -o generator generator.c
+
+input:
+	./generator -10000 10000 10000

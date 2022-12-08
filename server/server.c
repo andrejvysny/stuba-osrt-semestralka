@@ -164,7 +164,6 @@ int runServer()
 
 void appendToFile(char *message)
 {
-    logMessage(PROCESS_NAME_SERVER,"Writing to output file!",COLOR_INFO);
     FILE *fr;
     if((fr = fopen(OUTPUT_FILE,"a")) == NULL){
         return 0;
@@ -191,8 +190,8 @@ void handleServerAction(int sock_desc, char action, char *buffer){
             break;
 
         case SERVER_ACTION_SAVE_RESULT:
-
             pthread_create(&tid, NULL, (void *) appendToFile, getData(buffer));
+            logMessage(PROCESS_NAME_SERVER,"Writing to output file!",COLOR_INFO);
             pthread_join(tid, NULL);
 
             strcpy(buffer, "DONE");
