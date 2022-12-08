@@ -21,6 +21,6 @@ struct runtime {
     int clients_up;
 };
 
-#define INPUT_FILE "input.txt"
+#define INPUT_FILE "input2.txt"
 #define OUTPUT_FILE "output.txt"
 #endif //OSRT_SEMESTRALKA_CONFIG_H

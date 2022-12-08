@@ -3,13 +3,12 @@ main: main.c server/server.c clients/clients.c socket/socket.c logger/logger.c c
 
 clean:
 	rm -rf main
+	rm -rf generator
 	rm -rf output.txt
 
 run:
 	./main
 
-generator:
-	gcc -o generator generator.c
-
 input:
-	./generator -10000 10000 10000
+	gcc -o generator generator.c
+	./generator -50000 50000 10000

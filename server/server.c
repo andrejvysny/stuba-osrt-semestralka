@@ -111,7 +111,7 @@ int runServer()
     char buffer[CHAR_BUFFER_SIZE];
     bzero(buffer, sizeof(buffer));
 
-    setupServerSocket(&serverSock, SERVER_PORT, 5, PROCESS_NAME_SERVER);
+    setupServerSocket(&serverSock, SERVER_PORT, SERVER_BACKLOG, PROCESS_NAME_SERVER);
 
     while(1){
 

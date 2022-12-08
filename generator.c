@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     srand(time(0));
 
     FILE *fw;
-    if((fw = fopen("input.txt","w")) == NULL){
+    if((fw = fopen("input2.txt","w")) == NULL){
         perror("Error while creating file");
         exit(0);
     }
